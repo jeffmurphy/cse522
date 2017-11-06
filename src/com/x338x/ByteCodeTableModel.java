@@ -1,16 +1,19 @@
 package com.x338x;
 import javax.swing.table.DefaultTableModel;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class ByteCodeTableModel extends DefaultTableModel {
-    private String[] columnNames = {"Cell", "Hex", "Bin"};
-    char[] bytecode;
+    private String[] columnNames = {"Inst#", "Dec", "Bin"};
+    List<Integer> byteCodes = new ArrayList<>();
 
-    public ByteCodeTableModel() {
+    public void setBytecode(List<Integer> byteCodes) {
+        this.byteCodes = byteCodes;
+        fireTableDataChanged();
     }
 
-    public void updateByteCode(char[] bytecode) {
-        this.bytecode = bytecode;
-        this.fireTableDataChanged();
+    public ByteCodeTableModel() {
     }
 
     @Override
@@ -20,8 +23,8 @@ public class ByteCodeTableModel extends DefaultTableModel {
 
     @Override
     public int getRowCount() {
-        if (bytecode != null)
-            return bytecode.length;
+        if (byteCodes != null && byteCodes.isEmpty() == false)
+            return byteCodes.size();
         return 0;
     }
 
@@ -30,18 +33,18 @@ public class ByteCodeTableModel extends DefaultTableModel {
     }
 
     public Class getColumnClass(int c) {
-        if (c > 0) return String.class;
+        if (c == 2) return String.class;
         return Integer.class;
+    }
+
+    public String itob(int i) {
+        return String.format("%16.16s", Integer.toBinaryString(i)).replace(' ', '0');
     }
 
     public Object getValueAt(int row, int col) {
         if (col == 0) return row;
-        if (col == 1) return Integer.toHexString((int)bytecode[row]);
-
-        String s = String.format("%16.16s", Integer.toBinaryString(bytecode[row]));
-        s = s.replace(' ', '0');
-
-        return (int) bytecode[row];
+        if (col == 2) return itob((int)byteCodes.get(row)); //Integer.toHexString((int)byteCodes.get(row));
+        return (int) byteCodes.get(row);
     }
 
     public boolean isCellEditable(int row, int col) {
@@ -49,7 +52,7 @@ public class ByteCodeTableModel extends DefaultTableModel {
     }
 
     public void setValueAt(Object value, int row, int col) {
-        bytecode[row] = (char)value;
+        byteCodes.set(row, (int)value);
         fireTableCellUpdated(row, col);
     }
 }

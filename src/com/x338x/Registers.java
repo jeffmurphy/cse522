@@ -47,13 +47,13 @@ public class Registers {
         char[] s = new char[] {'0','0','0','x','x','x','x','0'};
 
         if ((this.ST & OVERFLOW) == OVERFLOW)
-            s[0] = 1;
+            s[0] = 'O';
         if ((this.ST & UNDERFLOW) == UNDERFLOW)
-            s[1] = 1;
+            s[1] = 'U';
         if ((this.ST & BUSERROR) == BUSERROR)
-            s[2] = 1;
+            s[2] = 'B';
         if ((this.ST & HALT) == HALT)
-            s[7] = 1;
+            s[7] = 'H';
         return new String(s);
     }
 

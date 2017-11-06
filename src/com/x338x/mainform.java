@@ -1,6 +1,7 @@
 package com.x338x;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -25,14 +26,34 @@ public class mainform {
         mtm.fireTableDataChanged();
         memoryTable.getColumnModel().getColumn(0).setMaxWidth(36);
 
+        ByteCodeTableModel bctm = new ByteCodeTableModel();
+        bytecodeTable.setModel(bctm);
+        bytecodeTable.getColumnModel().getColumn(0).setMaxWidth(36);
+
+        DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
+        rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
+        bytecodeTable.getColumnModel().getColumn(2).setCellRenderer(rightRenderer);
+        memoryTable.getColumnModel().getColumn(2).setCellRenderer(rightRenderer);
+
+
         VirtualMachine vm = new VirtualMachine(mtm, pcLabel, stLabel, aregLabel, bregLabel);
 
         Compiler compiler = new Compiler();
-        compiler.compile(codeEditor.getText());
+
         compileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                try {
+                    compiler.compile(codeEditor.getText());
+                    bctm.setBytecode(compiler.byteCodes);
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                    JOptionPane.showMessageDialog(mainpanel.getParent(),
+                            e1.toString(),
+                            "Compilation Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+                System.out.println("Compilation finished.");
             }
         });
         runButton.addActionListener(new ActionListener() {

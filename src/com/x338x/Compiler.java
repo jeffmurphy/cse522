@@ -1,6 +1,7 @@
 package com.x338x;
-import java.util.HashMap;
-import java.util.Map;
+import java.awt.*;
+import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -8,38 +9,45 @@ import java.util.regex.Pattern;
 
 public class Compiler {
     private int iNum = 0;
+    List<Integer> byteCodes = new ArrayList<>();
 
     /* map 'label' to instruction number / instruction */
     private Map<String, LabelNode> labelMap = new HashMap<String, LabelNode>();
     /* map labels pending resolution to inst num / instruction */
     private Map<String, LabelNode> pendingLabelMap = new HashMap<String, LabelNode>();
 
-    private class LabelNode {
-        int iNum;
-        String instruction;
-        LabelNode(int n, String i) {
-            iNum = n;
-            instruction = i;
-        }
-    }
-
-
-    public void compile(String program) {
+    public void compile(String program) throws Exception {
         try {
-            String tp = new String("    LD A, 10\n" +
-                    "    LD B, 1\n" +
-                    "l1: SUB A, B\n" +
-                    "    BNZ A, :l1 \n" +
-                    "\n" +
-                    "\n");
+            labelMap.clear();
+            pendingLabelMap.clear();
+            iNum = 0;
+            byteCodes.clear();
 
-            for (String line : tp.split("\n")) {
-                System.out.println(line);
+            for (String line : program.split("\n")) {
                 parseLine(line);
             }
+
+            Iterator it = pendingLabelMap.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry pair = (Map.Entry)it.next();
+                LabelNode ln = pendingLabelMap.get(pair.getKey());
+
+                System.out.println("plab: " + pair.getKey());
+                if (labelMap.containsKey(pair.getKey())) {
+                    iNum = ln.iNum;
+                    parseLine(ln.instruction);
+                }
+                else {
+                    System.out.println("Tried to recompile '" + ln.instruction +
+                            "' but label is still not known: " + pair.getKey());
+                    throw new Exception("Failed to resolve label " + pair.getKey());
+                }
+            }
+
         } catch(Exception e) {
             System.out.println("parse failed: " + e);
             e.printStackTrace();
+            throw e;
         }
     }
 
@@ -48,37 +56,37 @@ public class Compiler {
         Pattern lp = Pattern.compile(label_pattern);
         Matcher m = lp.matcher(line);
         String instruction = line;
-        String label = "";
+        String label = null;
 
         if (m.find()) {
             label = m.group(1);
             instruction = m.group(2);
 
-            if (labelMap.get(label) != null) {
-                throw new Exception("duplicate label");
+            if (labelMap.get(label) == null)
+                labelMap.put(label, new LabelNode(iNum, instruction));
+            else {
+                LabelNode ln = labelMap.get(label);
+                if (ln.iNum != iNum)
+                    throw new Exception("Duplicate label " + ln.iNum + " and " + iNum);
             }
-
-            labelMap.put(label, new LabelNode(iNum, instruction));
         }
 
-        System.out.println("lab: " + label + " ins: " + instruction);
+        System.out.println(iNum + ") lab: " + label + " ins: " + instruction);
+        Instruction ins = new Instruction(instruction, labelMap);
 
+        if (ins.getPending()) {
+            pendingLabelMap.put(ins.getPendingLabel(), new LabelNode(iNum, instruction));
+            byteCodes.add(0); // placeholder
+        }
+        else {
+            if (byteCodes.size() == iNum)
+                byteCodes.add(ins.getByteCode());
+            else
+                byteCodes.set(iNum, ins.getByteCode());
+        }
 
-
+        iNum += 1;
     }
-
-    public void LD(String reg, String addr) {
-        System.out.println(iNum + ": LD " + reg + " " + addr);
-    }
-
-    public void ST(String reg, String addr) {
-        System.out.println(iNum + ": ST " + reg + " " + addr);
-    }
-
-    public void ADD(String dst, String src) {
-        System.out.println(iNum + ": ADD " + dst + " " + src);
-    }
-
 
 
 }

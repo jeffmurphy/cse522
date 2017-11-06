@@ -1,6 +1,17 @@
-    LD A, 123
-    LD B, 234
-l1: ADD A, B
-    BNZ A, :l1 
+;; example of resolving a past label
+
+    LD A, 10  ; 00 00 00 00 00001010 = 10
+    LD B, 1   ; 00 00 01 00 00000001 = 1025
+l1: SUB A, B  ; 01 01 00 01 00000000 = 20736
+    BNZ A, l1 ; 10 11 00 00 00000010 = 45058 (l1 maps to instruction #2)
+    HALT      ; 11 00 00 00 00000000 = 49152
+
+;; example of resolving a future label
+
+    LD A, 10  ; 00 00 00 00 00001010 = 10
+    LD B, 1   ; 00 00 01 00 00000001 = 1025
+    BNZ A, l1 ; 10 11 00 00 00000011 = 45059 (l1 maps to instruction #3)
+l1: SUB A, B  ; 01 01 00 01 00000000 = 20736
+    HALT      ; 11 00 00 00 00000000 = 49152
 
 

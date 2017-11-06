@@ -9,10 +9,11 @@
    MUL A, B // A = A * B 
    DIV A, B // A = A / B
 
-   BEQ A, B, <label> // A == B
-   BNZ A, <label>
-   BGT A, B, <label> // A > B
-   BLT A, B, <label> // A < B
+   CMP A, B
+   BEQ <label> // A == B
+   BNZ <label>
+   BGT <label> // A > B
+   BLT <label> // A < B
 
    HALT
 
