@@ -1,0 +1,6 @@
+    LD A, 123
+    LD B, 234
+l1: ADD A, B
+    BNZ A, :l1 
+
+
