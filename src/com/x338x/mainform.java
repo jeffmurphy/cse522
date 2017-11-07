@@ -46,6 +46,8 @@ public class mainform {
                 try {
                     compiler.compile(codeEditor.getText());
                     bctm.setBytecode(compiler.byteCodes);
+                    vm.setByteCodes(compiler.byteCodes);
+                    vm.reset();
                 } catch (Exception e1) {
                     e1.printStackTrace();
                     JOptionPane.showMessageDialog(mainpanel.getParent(),
@@ -66,7 +68,7 @@ public class mainform {
                 } catch (Exception e1) {
                     e1.printStackTrace();
                     JOptionPane.showMessageDialog(mainpanel.getParent(),
-                            e1.toString(),
+                            e1.getMessage(),
                             "Execution Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
@@ -78,17 +80,19 @@ public class mainform {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    vm.setByteCodes(compiler.byteCodes);
-                    vm.reset();
+                    int inum = vm.registers.getPC();
+                    if (inum < bytecodeTable.getRowCount())
+                        bytecodeTable.setRowSelectionInterval(inum, inum);
+                    else
+                        throw new Exception("Execution finished.");
+
                     vm.step();
                 } catch (Exception e1) {
-                    e1.printStackTrace();
                     JOptionPane.showMessageDialog(mainpanel.getParent(),
-                            e1.toString(),
+                            e1.getMessage(),
                             "Execution Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
-                System.out.println("Execution finished.");
             }
         });
 

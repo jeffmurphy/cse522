@@ -56,8 +56,25 @@ public class VirtualMachine {
     }
 
     public void step() throws Exception {
-        // use registers.getPC() && setPC() to advance each instruction
-        // current instruction to execute is registers.getPC()
+        if (byteCodes != null && byteCodes.size() > 0) {
+            System.out.printf("stepping over instruction %d%n", registers.getPC());
+
+            if ((registers.getST() & Registers.HALT) != Registers.HALT) {
+                int iNum = registers.getPC();
+
+                if (iNum > byteCodes.size())
+                    registers.setST(registers.getST() | Registers.BUSERROR | Registers.HALT);
+                else
+                    Instruction.execute(registers, memory, byteCodes.get(iNum));
+
+                visualizeRegisters();
+                mtm.fireTableDataChanged();
+            }
+        }
+        else {
+            System.out.println("Bytecode empty. Compile first?");
+            registers.setST(registers.getST() | Registers.BUSERROR | Registers.HALT);
+        }
     }
 
     public void run() throws Exception {
