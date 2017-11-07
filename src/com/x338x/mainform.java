@@ -36,7 +36,7 @@ public class mainform {
         memoryTable.getColumnModel().getColumn(2).setCellRenderer(rightRenderer);
 
 
-        VirtualMachine vm = new VirtualMachine(mtm, pcLabel, stLabel, aregLabel, bregLabel);
+        VirtualMachine vm = new VirtualMachine(mtm, bctm, pcLabel, stLabel, aregLabel, bregLabel);
 
         Compiler compiler = new Compiler();
 
@@ -56,22 +56,25 @@ public class mainform {
                 System.out.println("Compilation finished.");
             }
         });
+
         runButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                vm.run();
             }
         });
+
         stepButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
             }
         });
+
         resetButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                vm.reset();
             }
         });
     }
