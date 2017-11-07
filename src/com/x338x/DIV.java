@@ -42,4 +42,16 @@ public class DIV extends Instruction {
         return bc;
     }
 
+    public static void execute(Registers r, int dstreg, int srcreg) throws Exception {
+        int srcval = getregval(r, srcreg), dstval = getregval(r, dstreg);
+
+        // DIV A, B   --->  A = A / B
+
+        // our system is 8 bit
+        if (dstval % srcval != 0)
+            r.setST(r.getST() | Registers.CARRY);
+
+        setregval(r, dstreg, dstval / srcval); // Register() class will enforce 8 bit
+    }
+
 }

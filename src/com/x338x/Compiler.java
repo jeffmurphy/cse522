@@ -58,6 +58,9 @@ public class Compiler {
         String instruction = line;
         String label = null;
 
+        line = line.trim().replaceAll(" +", " ");
+        if (line.equals("") || line.startsWith(";")) return;
+
         if (m.find()) {
             label = m.group(1);
             instruction = m.group(2);

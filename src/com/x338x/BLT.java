@@ -44,4 +44,14 @@ public class BLT extends Instruction {
         return bc;
     }
 
+    public static int execute(Registers r, int dstreg, int srcreg, int operand) throws Exception {
+        int srcval = getregval(r, srcreg), dstval = getregval(r, dstreg);
+
+        // BLT A, B, iNum   --->  if A < B then goto iNum else -1
+
+        if (srcval < dstval)
+            return operand;
+        return -1;
+    }
+
 }

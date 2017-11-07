@@ -107,7 +107,7 @@
             <properties>
               <font name="Courier"/>
               <rows value="9"/>
-              <text value="    LD A, 10&#10;    LD B, 1&#10;L1: SUB A, B&#10;    BNZ A, L1&#10;    HALT&#10;"/>
+              <text value="    LD A, 10&#10;    LD B, 1&#10;L1: SUB A, B&#10;    ST A, @0&#10;    ST B, @1&#10;    BNZ A, L1&#10;    LD B, 5&#10;    ST B, @2&#10;&#10;    HALT"/>
             </properties>
           </component>
         </children>

@@ -25,6 +25,8 @@ prog:	(expr NEWLINE)* ;
 expr:   LABEL expr
     |   'LD' REG ',' ADDR
     |   'ST' REG ',' ADDR
+    |   'LD' REG ',' LIT
+    |   'ST' REG ',' LIT
     |   'ADD' DST ',' SRC
     |   'SUB' DST ',' SRC
     |   'MUL' DST ',' SRC
@@ -39,7 +41,8 @@ SRC : [AB] ;
 DST : [AB] ;
 LHS : [AB] ;
 RHS : [AB] ;
-ADDR : [0-9]+ ;
+ADDR : @[0-9]+ ;
+LIT : @[0-9]+ ;
 LABEL : [a-z0-9]+':' ;
 TARGET : ':'[a-z0-9]+ ;
 NEWLINE : [\r\n]+ ;

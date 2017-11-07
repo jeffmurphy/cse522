@@ -9,8 +9,8 @@ public class Instruction {
     // could do a CMP REG, [REG | LIT] ..
 
     private String[] iPats = {
-            "^(LD)\\s([AB])\\s*,\\s*(\\d+)$",
-            "^(ST)\\s([AB])\\s*,\\s*(\\d+)$",
+            "^(LD)\\s([AB])\\s*,\\s*([@]{0,1})(\\d+)$",
+            "^(ST)\\s([AB])\\s*,\\s*([@]{1})(\\d+)$",
             "^(ADD)\\s([AB])\\s*,\\s*([AB])$",
             "^(SUB)\\s([AB])\\s*,\\s*([AB])$",
             "^(MUL)\\s([AB])\\s*,\\s*([AB])$",
@@ -37,8 +37,12 @@ public class Instruction {
 
      R1 = 00 : A
           01 : B
+          10 : LITERAL
+          11 : MEM REF
      R2 = 00 : A
-          02 : B
+          01 : B
+          10 : LITERAL
+          11 : MEMREF
 
      OPERAND = value depends on CC and II
 
@@ -53,6 +57,8 @@ public class Instruction {
     public final static int R1_MASK       = 0x0C00;
     public final static int R2_MASK       = 0x0300;
     public final static int OPERAND_MASK  = 0x00FF;
+
+    public final static int INS_MASK      = CC_MASK | II_MASK;
 
     public final static int CC_ASSIGN     = 0x0;
     public final static int II_LD         = (CC_ASSIGN << CC_SHIFT) | (0x0 << II_SHIFT);
@@ -73,8 +79,10 @@ public class Instruction {
     public final static int CC_HALT       = 0x3;
     public final static int II_HALT       = (CC_HALT << CC_SHIFT);
 
-    public final static int REGA          = 0x0;
-    public final static int REGB          = 0x1;
+    public final static int REGA          = 0b00;
+    public final static int REGB          = 0b01;
+    public final static int LITERAL       = 0b10;
+    public final static int ADDRESS       = 0b11;
 
     private Boolean pending = false;
     private String pendingLabel;
@@ -86,6 +94,7 @@ public class Instruction {
     private String instruction = "";
     private String arg1 = "";
     private String arg2 = "";
+    private Boolean addrRef = false;
 
     private int byteCode;
 
@@ -140,8 +149,19 @@ public class Instruction {
                     }
                 }
 
-                else if (instruction.equals("LD") || instruction.equals("ST") || instruction.equals("ADD") ||
-                        instruction.equals("SUB") || instruction.equals("MUL") || instruction.equals("DIV")
+                else if (instruction.equals("LD") || instruction.equals("ST")) {
+                    arg1 = m.group(2);
+                    addrRef = false;
+                    if (m.group(3).equals("@"))
+                        addrRef = true;
+                    arg2 = m.group(4);
+                    pending = false;
+                    labelNum = -1;
+                    convert(instruction);
+                }
+
+                else if (instruction.equals("ADD") || instruction.equals("SUB") ||
+                        instruction.equals("MUL") || instruction.equals("DIV")
                         ) {
                     arg1 = m.group(2);
                     arg2 = m.group(3);
@@ -162,7 +182,7 @@ public class Instruction {
 
     public void convert(String i) {
         if (i.equals("LD"))
-            byteCode = LD.convert(arg1, arg2);
+            byteCode = LD.convert(arg1, arg2, addrRef);
         else if (i.equals("ST"))
             byteCode = ST.convert(arg1, arg2);
         else if (i.equals("ADD"))
@@ -183,6 +203,53 @@ public class Instruction {
             byteCode = BNZ.convert(arg1, labelNum);
         else if (i.equals("HALT"))
             byteCode = HALT.convert();
+    }
+
+    public static void execute(Registers registers, int[] memory, int instruction) throws Exception {
+        int nextIns = -1;
+
+        switch (instruction & INS_MASK) {
+            case II_LD:
+                LD.execute(registers, memory, (instruction & R1_MASK) >> R1_SHIFT, (instruction & R2_MASK) >> R2_SHIFT, instruction & OPERAND_MASK);
+                break;
+            case II_ST:
+                ST.execute(registers, memory, (instruction & R1_MASK) >> R1_SHIFT, instruction & OPERAND_MASK);
+                break;
+            case II_ADD:
+                ADD.execute(registers, (instruction & R1_MASK) >> R1_SHIFT, (instruction & R2_MASK) >> R2_SHIFT);
+                break;
+            case II_SUB:
+                SUB.execute(registers, (instruction & R1_MASK) >> R1_SHIFT, (instruction & R2_MASK) >> R2_SHIFT);
+                break;
+            case II_MUL:
+                MUL.execute(registers, (instruction & R1_MASK) >> R1_SHIFT, (instruction & R2_MASK) >> R2_SHIFT);
+                break;
+            case II_DIV:
+                DIV.execute(registers, (instruction & R1_MASK) >> R1_SHIFT, (instruction & R2_MASK) >> R2_SHIFT);
+                break;
+            case II_BEQ:
+                nextIns = BEQ.execute(registers, (instruction & R1_MASK) >> R1_SHIFT, (instruction & R2_MASK) >> R2_SHIFT, instruction & OPERAND_MASK);
+                break;
+            case II_BGT:
+                nextIns = BGT.execute(registers, (instruction & R1_MASK) >> R1_SHIFT, (instruction & R2_MASK) >> R2_SHIFT, instruction & OPERAND_MASK);
+                break;
+            case II_BLT:
+                nextIns = BLT.execute(registers, (instruction & R1_MASK) >> R1_SHIFT, (instruction & R2_MASK) >> R2_SHIFT, instruction & OPERAND_MASK);
+                break;
+            case II_BNZ:
+                nextIns = BNZ.execute(registers, (instruction & R1_MASK) >> R1_SHIFT, instruction & OPERAND_MASK);
+                break;
+            case II_HALT:
+                HALT.execute(registers);
+                break;
+            default:
+                throw new Exception("Unknown instruction in CC|II fields: " + (instruction & INS_MASK));
+        }
+
+        if (nextIns == -1)
+            registers.setPC(registers.getPC() + 1);
+        else
+            registers.setPC(nextIns);
     }
 
     public Boolean getPending() {
@@ -216,4 +283,30 @@ public class Instruction {
     public String getPendingLabel() {
         return pendingLabel;
     }
+
+
+    public static int getregval(Registers r, int reg) throws Exception {
+        switch (reg) {
+            case Instruction.REGA:
+                return r.getA();
+            case Instruction.REGB:
+                return r.getB();
+            default:
+                throw new Exception("Invalid register: " + reg);
+        }
+    }
+
+    public static void setregval(Registers r, int reg, int val) throws Exception {
+        switch (reg) {
+            case Instruction.REGA:
+                r.setA(val);
+                break;
+            case Instruction.REGB:
+                r.setB(val);
+                break;
+            default:
+                throw new Exception("Invalid register: " + reg);
+        }
+    }
+
 }

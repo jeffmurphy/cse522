@@ -30,7 +30,7 @@ public class ST extends Instruction {
         else if (arg1.equals("B"))
             bc |= Instruction.REGB << Instruction.R1_SHIFT;
 
-        // R2 is ignored
+        // R2 is unused (ST always goes to mem)
 
         int memloc = Integer.parseInt(arg2);
         bc |= (Instruction.OPERAND_MASK & memloc);
@@ -38,4 +38,21 @@ public class ST extends Instruction {
         return bc;
     }
 
+
+    public static void execute(Registers r, int [] memory, int reg, int operand) throws Exception {
+        if (operand >= memory.length) {
+            r.setST(r.getST() | Registers.BUSERROR | Registers.HALT);
+        } else {
+            switch (reg) {
+                case Instruction.REGA:
+                    memory[operand] = r.getA();
+                    break;
+                case Instruction.REGB:
+                    memory[operand] = r.getB();
+                    break;
+                default:
+                    throw new Exception("Invalid register specified: " + reg);
+            }
+        }
+    }
 }

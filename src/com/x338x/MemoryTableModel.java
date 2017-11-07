@@ -4,19 +4,19 @@ import javax.swing.table.DefaultTableModel;
 
 public class MemoryTableModel extends DefaultTableModel {
     private String[] columnNames = {"Cell", "Dec", "Hex"};
-    char[] memory;
+    private int[] memory;
 
-    public MemoryTableModel() {
+    MemoryTableModel() {
     }
 
-    public void updateMemory(char[] mem) {
+    public void updateMemory(int[] mem) {
         memory = mem;
         this.fireTableDataChanged();
     }
 
     @Override
     public String getColumnName(int col) {
-        return columnNames[col].toString();
+        return columnNames[col];
     }
 
     @Override
@@ -31,14 +31,17 @@ public class MemoryTableModel extends DefaultTableModel {
     }
 
     public Class getColumnClass(int c) {
-        if (c == 2) return String.class;
+        if (c == 2)
+            return String.class;
         return Integer.class;
     }
 
     public Object getValueAt(int row, int col) {
-        if (col == 0) return row;
-        if (col == 2) return Integer.toHexString((int)memory[row]);
-        return (int) memory[row];
+        if (col == 0)
+            return row;
+        if (col == 2)
+            return Integer.toHexString(memory[row]);
+        return memory[row];
     }
 
     public boolean isCellEditable(int row, int col) {
@@ -46,7 +49,7 @@ public class MemoryTableModel extends DefaultTableModel {
     }
 
     public void setValueAt(Object value, int row, int col) {
-        memory[row] = (char)value;
+        memory[row] = (int)value;
         fireTableCellUpdated(row, col);
     }
 }

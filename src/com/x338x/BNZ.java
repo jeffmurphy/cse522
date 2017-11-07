@@ -39,4 +39,14 @@ public class BNZ extends Instruction {
         return bc;
     }
 
+    public static int execute(Registers r, int dstreg, int operand) throws Exception {
+        int dstval = getregval(r, dstreg);
+
+        // BNZ A, iNum   --->  if A != 0 then goto iNum else -1
+
+        if (dstval != 0)
+            return operand;
+        return -1;
+    }
+
 }

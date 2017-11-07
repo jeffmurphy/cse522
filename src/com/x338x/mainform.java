@@ -60,14 +60,35 @@ public class mainform {
         runButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                vm.run();
+                try {
+                    vm.setByteCodes(compiler.byteCodes);
+                    vm.run();
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                    JOptionPane.showMessageDialog(mainpanel.getParent(),
+                            e1.toString(),
+                            "Execution Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+                System.out.println("Execution finished.");
             }
         });
 
         stepButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                try {
+                    vm.setByteCodes(compiler.byteCodes);
+                    vm.reset();
+                    vm.step();
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                    JOptionPane.showMessageDialog(mainpanel.getParent(),
+                            e1.toString(),
+                            "Execution Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+                System.out.println("Execution finished.");
             }
         });
 

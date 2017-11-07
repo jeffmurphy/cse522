@@ -24,4 +24,10 @@ public class HALT extends Instruction {
         return bc;
     }
 
+
+    public static void execute(Registers r) {
+        r.setST(r.getST() | Registers.HALT);
+    }
+
+
 }

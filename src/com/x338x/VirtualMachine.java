@@ -4,13 +4,12 @@ import javax.swing.JLabel;
 import java.util.List;
 
 public class VirtualMachine {
-    private char[] memory;
+    private int[] memory;
     private List<Integer> byteCodes;
 
     Registers registers;
     MemoryTableModel mtm;
     ByteCodeTableModel bctm;
-
 
     JLabel pcLabel, stLabel, aregLabel, bregLabel;
 
@@ -20,7 +19,7 @@ public class VirtualMachine {
                           JLabel _stLabel,
                           JLabel _aregLabel,
                           JLabel _bregLabel) {
-        memory = new char[10];
+        memory = new int[10];
         registers = new Registers();
 
         bctm = _bctm;
@@ -51,22 +50,36 @@ public class VirtualMachine {
 
     public void reset() {
         registers.reset();
-        memory = new char[10];
+        memory = new int[10];
         mtm.updateMemory(memory);
         visualizeRegisters();
     }
 
-    public void step() {
+    public void step() throws Exception {
         // use registers.getPC() && setPC() to advance each instruction
+        // current instruction to execute is registers.getPC()
     }
 
-    public void run() {
+    public void run() throws Exception {
         if (byteCodes != null && byteCodes.size() > 0) {
-            System.out.println("running..");
-            // XXX fill me in
+            reset();
+            System.out.println("running " + byteCodes.size() + " instructions.");
+
+            while ((registers.getST() & Registers.HALT) != Registers.HALT) {
+                int iNum = registers.getPC();
+
+                if (iNum > byteCodes.size())
+                    registers.setST(registers.getST() | Registers.BUSERROR | Registers.HALT);
+                else
+                    Instruction.execute(registers, memory, byteCodes.get(iNum));
+
+                visualizeRegisters();
+                mtm.fireTableDataChanged();
+            }
         }
         else {
             System.out.println("Bytecode empty. Compile first?");
+            registers.setST(registers.getST() | Registers.BUSERROR | Registers.HALT);
         }
     }
 }
