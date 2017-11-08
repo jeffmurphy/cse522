@@ -36,7 +36,7 @@ public class mainform {
         memoryTable.getColumnModel().getColumn(2).setCellRenderer(rightRenderer);
 
 
-        VirtualMachine vm = new VirtualMachine(mtm, bctm, pcLabel, stLabel, aregLabel, bregLabel);
+        VirtualMachine vm = new VirtualMachine(mtm, bytecodeTable, pcLabel, stLabel, aregLabel, bregLabel);
 
         Compiler compiler = new Compiler();
 
@@ -66,7 +66,6 @@ public class mainform {
                     vm.setByteCodes(compiler.byteCodes);
                     vm.run();
                 } catch (Exception e1) {
-                    e1.printStackTrace();
                     JOptionPane.showMessageDialog(mainpanel.getParent(),
                             e1.getMessage(),
                             "Execution Error",
@@ -80,12 +79,6 @@ public class mainform {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    int inum = vm.registers.getPC();
-                    if (inum < bytecodeTable.getRowCount())
-                        bytecodeTable.setRowSelectionInterval(inum, inum);
-                    else
-                        throw new Exception("Execution finished.");
-
                     vm.step();
                 } catch (Exception e1) {
                     JOptionPane.showMessageDialog(mainpanel.getParent(),

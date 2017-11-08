@@ -1,6 +1,6 @@
 package com.x338x;
 
-import javax.swing.JLabel;
+import javax.swing.*;
 import java.util.List;
 
 public class VirtualMachine {
@@ -9,12 +9,12 @@ public class VirtualMachine {
 
     Registers registers;
     MemoryTableModel mtm;
-    ByteCodeTableModel bctm;
+    JTable bct;
 
     JLabel pcLabel, stLabel, aregLabel, bregLabel;
 
     public VirtualMachine(MemoryTableModel _mtm,
-                          ByteCodeTableModel _bctm,
+                          JTable _bct,
                           JLabel _pcLabel,
                           JLabel _stLabel,
                           JLabel _aregLabel,
@@ -22,7 +22,7 @@ public class VirtualMachine {
         memory = new int[10];
         registers = new Registers();
 
-        bctm = _bctm;
+        bct = _bct;
         mtm = _mtm;
         mtm.updateMemory(memory);
         pcLabel = _pcLabel;
@@ -61,6 +61,8 @@ public class VirtualMachine {
 
             if ((registers.getST() & Registers.HALT) != Registers.HALT) {
                 int iNum = registers.getPC();
+                registers.setST(0);
+                bct.setRowSelectionInterval(iNum, iNum);
 
                 if (iNum > byteCodes.size())
                     registers.setST(registers.getST() | Registers.BUSERROR | Registers.HALT);
@@ -69,11 +71,13 @@ public class VirtualMachine {
 
                 visualizeRegisters();
                 mtm.fireTableDataChanged();
-            }
+            } else
+                throw new Exception("Execution finished.");
+
         }
         else {
-            System.out.println("Bytecode empty. Compile first?");
             registers.setST(registers.getST() | Registers.BUSERROR | Registers.HALT);
+            throw new Exception("Bytecode empty. Compile first?");
         }
     }
 
@@ -84,6 +88,8 @@ public class VirtualMachine {
 
             while ((registers.getST() & Registers.HALT) != Registers.HALT) {
                 int iNum = registers.getPC();
+                registers.setST(0);
+                bct.setRowSelectionInterval(iNum, iNum);
 
                 if (iNum > byteCodes.size())
                     registers.setST(registers.getST() | Registers.BUSERROR | Registers.HALT);
@@ -93,10 +99,12 @@ public class VirtualMachine {
                 visualizeRegisters();
                 mtm.fireTableDataChanged();
             }
+            throw new Exception("Execution finished.");
         }
         else {
-            System.out.println("Bytecode empty. Compile first?");
             registers.setST(registers.getST() | Registers.BUSERROR | Registers.HALT);
+            throw new Exception("Bytecode empty. Compile first?");
         }
     }
+
 }
